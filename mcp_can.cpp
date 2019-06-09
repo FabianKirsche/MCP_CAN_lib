@@ -57,7 +57,7 @@ INT8U MCP_CAN::mcp_read(){
 ** Function name:           mcp_read_multiple
 ** Descriptions:            reads multiple data packages via SPI
 *********************************************************************************************************/
-void MCP_CAN::mcp_read_multiple(INT8U values[]) {
+void MCP_CAN::mcp_read_multiple(INT8U values[], const INT8U n) {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
     t.length=8;                         //bits
@@ -100,7 +100,7 @@ void MCP_CAN::mcp2515_readRegisterS(const INT8U address, INT8U values[], const I
 {
     mcp_cmd(MCP_READ);
     mcp_cmd(address);
-    mcp_read_multiple(values); //mcp has auto increment of register address
+    mcp_read_multiple(values, n); //mcp has auto increment of register address
 }
 
 /*********************************************************************************************************
@@ -515,24 +515,24 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
     if(res > 0)
     {
 #if DEBUG_MODE
-      Serial.print("Entering Configuration Mode Failure...\r\n"); 
+      ESP_LOGE(CLASS_TAG, "Entering Configuration Mode Failure...\r\n"); 
 #endif
       return res;
     }
 #if DEBUG_MODE
-    Serial.print("Entering Configuration Mode Successful!\r\n");
+    ESP_LOGD(CLASS_TAG, "Entering Configuration Mode Successful!\r\n");
 #endif
 
     // Set Baudrate
     if(mcp2515_configRate(canSpeed, canClock))
     {
 #if DEBUG_MODE
-      Serial.print("Setting Baudrate Failure...\r\n");
+      ESP_LOGE(CLASS_TAG, "Setting Baudrate Failure...\r\n");
 #endif
       return res;
     }
 #if DEBUG_MODE
-    Serial.print("Setting Baudrate Successful!\r\n");
+    ESP_LOGD(CLASS_TAG, "Setting Baudrate Successful!\r\n");
 #endif
 
     if ( res == MCP2515_OK ) {
@@ -584,7 +584,7 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
     
             default:
 #if DEBUG_MODE        
-            Serial.print("`Setting ID Mode Failure...\r\n");
+            ESP_LOGE(CLASS_TAG, "`Setting ID Mode Failure...\r\n");
 #endif           
             return MCP2515_FAIL;
             break;
@@ -595,7 +595,7 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
         if(res)
         {
 #if DEBUG_MODE        
-          Serial.print("Returning to Previous Mode Failure...\r\n");
+          ESP_LOGE(CLASS_TAG, "Returning to Previous Mode Failure...\r\n");
 #endif           
           return res;
         }
@@ -766,21 +766,23 @@ INT8U MCP_CAN::mcp2515_getNextFreeTXBuf(INT8U *txbuf_n)                 /* get N
 ** Function name:           MCP_CAN
 ** Descriptions:            Public function to declare CAN class and the /CS pin.
 *********************************************************************************************************/
-MCP_CAN::MCP_CAN(spi_host_device_t spihostdevice, spi_bus_config_t busconfig, spi_device_interface_config_t deviceconfig)
+MCP_CAN::MCP_CAN()
 {
-    m_spihostdevice = spihostdevice;
-    m_busconfig = busconfig;
-    m_deviceconfig = deviceconfig;
+    
 }
 
 /*********************************************************************************************************
 ** Function name:           begin
 ** Descriptions:            Public function to declare controller initialization parameters.
 *********************************************************************************************************/
-INT8U MCP_CAN::begin(INT8U idmodeset, INT8U speedset, INT8U clockset)
+INT8U MCP_CAN::begin(spi_host_device_t spihostdevice, spi_bus_config_t busconfig, spi_device_interface_config_t deviceconfig, INT8U idmodeset, INT8U speedset, INT8U clockset)
 {
     INT8U res;
     esp_err_t ret;
+
+    m_spihostdevice = spihostdevice;
+    m_busconfig = busconfig;
+    m_deviceconfig = deviceconfig;
     
     // Init SPI
     ret=spi_bus_initialize(m_spihostdevice, &m_busconfig, 1);

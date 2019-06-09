@@ -40,6 +40,11 @@ class MCP_CAN
     INT8U   m_nfilhit;                                                  // The number of the filter that matched the message
     INT8U   MCPCS;                                                      // Chip Select pin number
     INT8U   mcpMode;                                                    // Mode to return to after configurations are performed.
+    spi_device_handle_t m_spi;
+    spi_bus_config_t m_busconfig;
+    spi_device_interface_config_t m_deviceconfig;
+    spi_host_device_t m_spihostdevice;
+    static const char *CLASS_TAG = "tdCore.cpp"; 
     
 
 /*********************************************************************************************************
@@ -47,6 +52,12 @@ class MCP_CAN
  *********************************************************************************************************/
    // private:
    private:
+
+    void mcp_cmd(const uint8_t cmd);
+
+    INT8U mcp_read();
+
+    void mcp_read_multiple(INT8U values[]);
 
     void mcp2515_reset(void);                                           // Soft Reset MCP2515
 
@@ -104,7 +115,9 @@ class MCP_CAN
     INT8U sendMsg();                                                    // Send message
 
 public:
-    MCP_CAN(INT8U _CS);
+    MCP_CAN(spi_host_device_t spihostdevice, 
+            spi_bus_config_t busconfig, 
+            spi_device_interface_config_t deviceconfig);
     INT8U begin(INT8U idmodeset, INT8U speedset, INT8U clockset);       // Initialize controller parameters
     INT8U init_Mask(INT8U num, INT8U ext, INT32U ulData);               // Initialize Mask(s)
     INT8U init_Mask(INT8U num, INT32U ulData);                          // Initialize Mask(s)

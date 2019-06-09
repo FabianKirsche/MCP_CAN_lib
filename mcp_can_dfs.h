@@ -24,16 +24,19 @@
 #ifndef _MCP2515DFS_H_
 #define _MCP2515DFS_H_
 
-#include <Arduino.h>
-#include <SPI.h>
+#include "driver/spi_master.h"
 #include <inttypes.h>
+#include "string.h"
+#include "mcp_can.h"
+#include "freertos/task.h"
+#include "esp_log.h"
 
 #ifndef INT32U
-#define INT32U unsigned long
+#define INT32U uint32_t
 #endif
 
 #ifndef INT8U
-#define INT8U byte
+#define INT8U  uint8_t
 #endif
 
 // if print debug information

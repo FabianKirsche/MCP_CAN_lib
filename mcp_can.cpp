@@ -90,7 +90,7 @@ INT8U MCP_CAN::mcp2515_readRegister(const INT8U address)
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length = 0;                  //Command is 8 bits
+    t.length = 8;                  //Command is 8 bits
     t.rxlength = 8;
     t.cmd = MCP_READ;               //The data is the cmd itself
     t.addr = address;
@@ -131,7 +131,7 @@ void MCP_CAN::mcp2515_setRegister(const INT8U address, const INT8U value)
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length = 8;                     //Command is 8 bits
+    t.length = 8*3;                     //Command is 8 bits
     t.cmd = MCP_WRITE;                //The data is the cmd itself
     t.addr = address;
     t.tx_buffer = &value;
@@ -169,19 +169,21 @@ void MCP_CAN::mcp2515_setRegisterS(const INT8U address, const INT8U values[], co
 *********************************************************************************************************/
 void MCP_CAN::mcp2515_modifyRegister(const INT8U address, const INT8U mask, const INT8U data)
 {
-    INT8U send_data[4] = {MCP_BITMOD, address, mask, data};
+    //INT8U send_data[4] = {MCP_BITMOD, address, mask, data};
+    INT8U send_data[2] = {mask, data};
 
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length = 8*4;                     //Command is 8 bits
-    //t.cmd = MCP_BITMOD;               //The data is the cmd itself
-    //t.addr = address;
-    t.tx_buffer = send_data;
+    t.length = 8*2;                     //Command is 8 bits
+    t.cmd = MCP_BITMOD;               //The data is the cmd itself
+    t.addr = address;
+    t.tx_data[0] = send_data[0];
+    t.tx_data[1] = send_data[1];
     t.flags = SPI_TRANS_USE_TXDATA;
     
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
-    ESP_LOGI(CLASS_TAG, "mcp_modifyRegister: ret = %d", (uint8_t)ret);
+    ESP_LOGI(CLASS_TAG, "mcp_modifyRegister: cmd = %d    addr = %d    ret = %d \ntx_data[0] = %d    tx_data[1] = %d    tx_data[2] = %d    tx_data[3] = %d", (uint8_t) t.cmd, (uint8_t) t.addr, (uint8_t) ret, (uint8_t) t.tx_data[0], (uint8_t) t.tx_data[1], (uint8_t) t.tx_data[2], (uint8_t) t.tx_data[3]);
 }
 
 /*********************************************************************************************************
@@ -220,10 +222,20 @@ INT8U MCP_CAN::setMode(const INT8U opMode)
 INT8U MCP_CAN::mcp2515_setCANCTRL_Mode(const INT8U newmode)
 {
     INT8U i;
+    INT8U oldmode;
+
+    oldmode = mcp2515_readRegister(MCP_CANCTRL);
+    oldmode = mcp2515_readRegister(MCP_CANSTAT);
+    //ESP_LOGE(CLASS_TAG, "mcp2515_setCANCTRL_Mode: oldmode w/o mask = %d", oldmode);
+
+    mcp2515_modifyRegister(MCP_CANCTRL, MODE_MASK, 0x60); // Set listen-only mode
+    oldmode = mcp2515_readRegister(MCP_CANCTRL);
+    oldmode = mcp2515_readRegister(MCP_CANSTAT);
 
     mcp2515_modifyRegister(MCP_CANCTRL, MODE_MASK, newmode);
 
     i = mcp2515_readRegister(MCP_CANCTRL);
+    oldmode = mcp2515_readRegister(MCP_CANSTAT);
     //ESP_LOGE(CLASS_TAG, "mcp2515_setCANCTRL_Mode: i w/o mask = %d", i);
     i &= MODE_MASK;
 
@@ -835,8 +847,13 @@ INT8U MCP_CAN::begin(spi_host_device_t spihostdevice, spi_bus_config_t busconfig
     m_busconfig = busconfig;
     m_deviceconfig = deviceconfig;
     
+    // Check endianness
+    uint8_t x = 1;
+    char *y = (char*)&x;
+    ESP_LOGI(CLASS_TAG, "begin: System uses little endian (1 if true): %c", *y+48);
+
     // Init SPI
-    ret=spi_bus_initialize(m_spihostdevice, &m_busconfig, 0);
+    ret=spi_bus_initialize(m_spihostdevice, &m_busconfig, 1);
     ESP_ERROR_CHECK(ret);
 
     //ESP_LOGI(CLASS_TAG, "begin: m_spi = %u", (uint) m_spi);

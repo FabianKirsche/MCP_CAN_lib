@@ -31,6 +31,7 @@
 #include "mcp_can.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "esp_system.h"
 
 #ifndef INT32U
 #define INT32U uint32_t

@@ -39,40 +39,6 @@ void MCP_CAN::mcp_cmd(const uint8_t cmd){
 }
 
 /*********************************************************************************************************
-** Function name:           mcp_read
-** Descriptions:            reads data via SPI
-*********************************************************************************************************/
-/*INT8U MCP_CAN::mcp_read(){
-    spi_transaction_t t;
-    memset(&t, 0, sizeof(t));
-    t.length=8;                         //bits
-    t.flags = SPI_TRANS_USE_RXDATA;
-
-    esp_err_t ret = spi_device_polling_transmit(m_spi, &t);
-    assert(ret == ESP_OK);
-    ESP_LOGI(CLASS_TAG, "mcp_read: ret = %d    rx_data = %i", (uint8_t)ret, *t.rx_data);
-    return *t.rx_data;
-}*/
-
-/*********************************************************************************************************
-** Function name:           mcp_read_multiple
-** Descriptions:            reads multiple data packages via SPI
-*********************************************************************************************************/
-/*void MCP_CAN::mcp_read_multiple(INT8U values[], const INT8U n) {
-    spi_transaction_t t;
-    memset(&t, 0, sizeof(t));
-    t.length=8;                         //bits
-    t.flags = SPI_TRANS_USE_RXDATA;
-
-    for(INT8U i=0; i<n; i++){
-        esp_err_t ret = spi_device_polling_transmit(m_spi, &t);
-        assert( ret == ESP_OK );
-        values[i] = *t.rx_data;    
-    }
-}*/
-
-
-/*********************************************************************************************************
 ** Function name:           mcp2515_reset
 ** Descriptions:            Performs a software reset
 *********************************************************************************************************/
@@ -109,10 +75,9 @@ INT8U MCP_CAN::mcp2515_readRegister(const INT8U address) // Tested!
 *********************************************************************************************************/
 void MCP_CAN::mcp2515_readRegisterS(const INT8U address, INT8U values[], const INT8U n)
 {
-    if (n > 4) {
-        ESP_LOGE(CLASS_TAG, "mcp2515_readRegisterS: n > 4 is not yet supported!");
-        return;
-    }
+    // Create rxbuffer on dma capable heap memory (because rx data is > 32 bit)
+    uint8_t* rxValues = (uint8_t *) heap_caps_malloc(n*sizeof(uint8_t), MALLOC_CAP_DMA);
+    assert(rxValues != NULL);
 
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));       //Zero out the transaction
@@ -120,7 +85,7 @@ void MCP_CAN::mcp2515_readRegisterS(const INT8U address, INT8U values[], const I
     t.rxlength = 8*n;
     t.cmd = MCP_READ;               //The data is the cmd itself
     t.addr = address;
-    t.flags = SPI_TRANS_USE_RXDATA;
+    t.rx_buffer = rxValues;
 
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
@@ -129,8 +94,9 @@ void MCP_CAN::mcp2515_readRegisterS(const INT8U address, INT8U values[], const I
     // Copy rx-data to output array
     for (INT8U i=0; i<n; i++)
     {
-        values[i] = t.rx_data[i];
+        values[i] = rxValues[i];
     }
+    free(rxValues);             // free allocated heap memory after copying
 }
 
 /*********************************************************************************************************
@@ -159,9 +125,12 @@ void MCP_CAN::mcp2515_setRegister(const INT8U address, const INT8U value) // Tes
 *********************************************************************************************************/
 void MCP_CAN::mcp2515_setRegisterS(const INT8U address, const INT8U values[], const INT8U n)
 {
-    if (n > 4) {
-        ESP_LOGE(CLASS_TAG, "mcp2515_setRegisterS: n > 4 is not yet supported!");
-        return;
+    // Create txbuffer on dma capable heap memory (because tx data is > 32bit)
+    uint8_t* txValues = (uint8_t *) heap_caps_malloc(n*sizeof(uint8_t), MALLOC_CAP_DMA);
+    assert(txValues != NULL);
+    for (INT8U i=0; i<n; i++)
+    {
+        txValues[i] = values[i];
     }
 
     spi_transaction_t t;
@@ -169,16 +138,11 @@ void MCP_CAN::mcp2515_setRegisterS(const INT8U address, const INT8U values[], co
     t.length = 8*n;                     //Command is 8 bits
     t.cmd = MCP_WRITE;                //The data is the cmd itself
     t.addr = address;
-    
-    for (INT8U i=0; i<n; i++)
-    {
-        t.tx_data[i] = values[i];
-    }
-
-    t.flags = SPI_TRANS_USE_TXDATA;
+    t.tx_buffer = txValues;
 
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
+    free(txValues);                   // free memory allocated on heap after sending
 
     //ESP_LOGI(CLASS_TAG, "mcp2515_setRegisterS: cmd = %d    addr = %d    tx_data0 = %3d  tx_data1 = %3d  tx_data2 = %3d  tx_data3 = %3d", (uint8_t)t.cmd,(uint8_t) t.addr, t.tx_data[0], t.tx_data[1], t.tx_data[2], t.tx_data[3]);
 }

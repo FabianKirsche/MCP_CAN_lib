@@ -24,6 +24,7 @@
 #ifndef _MCP2515DFS_H_
 #define _MCP2515DFS_H_
 
+#include "driver/spi_common.h"
 #include "driver/spi_master.h"
 #include <inttypes.h>
 #include "string.h"

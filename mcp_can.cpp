@@ -35,7 +35,7 @@ void MCP_CAN::mcp_cmd(const uint8_t cmd){
     
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
-    ESP_LOGI(CLASS_TAG, "mcp_cmd: ret = %d", (uint8_t)ret);
+    //ESP_LOGI(CLASS_TAG, "mcp_cmd: ret = %d", (uint8_t)ret);
 }
 
 /*********************************************************************************************************
@@ -98,7 +98,7 @@ INT8U MCP_CAN::mcp2515_readRegister(const INT8U address) // Tested!
 
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
-    ESP_LOGI(CLASS_TAG, "mcp2515_readRegister: cmd = %d    addr = %d    rx_data0 = %3d  rx_data1 = %3d  rx_data2 = %3d  rx_data3 = %3d", (uint8_t)t.cmd, (uint8_t)t.addr, t.rx_data[0], t.rx_data[1], t.rx_data[2], t.rx_data[3]);
+    //ESP_LOGI(CLASS_TAG, "mcp2515_readRegister: cmd = %d    addr = %d    rx_data0 = %3d  rx_data1 = %3d  rx_data2 = %3d  rx_data3 = %3d", (uint8_t)t.cmd, (uint8_t)t.addr, t.rx_data[0], t.rx_data[1], t.rx_data[2], t.rx_data[3]);
 
     return t.rx_data[0];
 }
@@ -124,7 +124,7 @@ void MCP_CAN::mcp2515_readRegisterS(const INT8U address, INT8U values[], const I
 
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
-    ESP_LOGI(CLASS_TAG, "mcp2515_readRegisterS: cmd = %d    addr = %d    rx_data0 = %3d  rx_data1 = %3d  rx_data2 = %3d  rx_data3 = %3d", (uint8_t)t.cmd, (uint8_t)t.addr, t.rx_data[0], t.rx_data[1], t.rx_data[2], t.rx_data[3]);
+    //ESP_LOGI(CLASS_TAG, "mcp2515_readRegisterS: cmd = %d    addr = %d    rx_data0 = %3d  rx_data1 = %3d  rx_data2 = %3d  rx_data3 = %3d", (uint8_t)t.cmd, (uint8_t)t.addr, t.rx_data[0], t.rx_data[1], t.rx_data[2], t.rx_data[3]);
 
     // Copy rx-data to output array
     for (INT8U i=0; i<n; i++)
@@ -180,7 +180,7 @@ void MCP_CAN::mcp2515_setRegisterS(const INT8U address, const INT8U values[], co
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
 
-    ESP_LOGI(CLASS_TAG, "mcp2515_setRegisterS: cmd = %d    addr = %d    tx_data0 = %3d  tx_data1 = %3d  tx_data2 = %3d  tx_data3 = %3d", (uint8_t)t.cmd,(uint8_t) t.addr, t.tx_data[0], t.tx_data[1], t.tx_data[2], t.tx_data[3]);
+    //ESP_LOGI(CLASS_TAG, "mcp2515_setRegisterS: cmd = %d    addr = %d    tx_data0 = %3d  tx_data1 = %3d  tx_data2 = %3d  tx_data3 = %3d", (uint8_t)t.cmd,(uint8_t) t.addr, t.tx_data[0], t.tx_data[1], t.tx_data[2], t.tx_data[3]);
 }
 
 /*********************************************************************************************************
@@ -203,7 +203,7 @@ void MCP_CAN::mcp2515_modifyRegister(const INT8U address, const INT8U mask, cons
     
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
-    ESP_LOGI(CLASS_TAG, "mcp_modifyRegister: cmd = %d    addr = %d    ret = %d tx_data[0] = %d    tx_data[1] = %d    tx_data[2] = %d    tx_data[3] = %d", (uint8_t) t.cmd, (uint8_t) t.addr, (uint8_t) ret, (uint8_t) t.tx_data[0], (uint8_t) t.tx_data[1], (uint8_t) t.tx_data[2], (uint8_t) t.tx_data[3]);
+    //ESP_LOGI(CLASS_TAG, "mcp_modifyRegister: cmd = %d    addr = %d    ret = %d tx_data[0] = %d    tx_data[1] = %d    tx_data[2] = %d    tx_data[3] = %d", (uint8_t) t.cmd, (uint8_t) t.addr, (uint8_t) ret, (uint8_t) t.tx_data[0], (uint8_t) t.tx_data[1], (uint8_t) t.tx_data[2], (uint8_t) t.tx_data[3]);
 }
 
 /*********************************************************************************************************
@@ -220,7 +220,7 @@ INT8U MCP_CAN::mcp2515_readStatus(void)
     t.flags = SPI_TRANS_USE_RXDATA;
     spi_device_polling_transmit(m_spi, &t);
 
-    ESP_LOGI(CLASS_TAG, "mcp2515_readStatus: rx_data[0] = 0x%x", t.rx_data[0]);
+    //ESP_LOGI(CLASS_TAG, "mcp2515_readStatus: rx_data[0] = 0x%x", t.rx_data[0]);
 
     return t.rx_data[0];
 }

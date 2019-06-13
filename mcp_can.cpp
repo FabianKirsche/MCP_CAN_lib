@@ -116,7 +116,7 @@ void MCP_CAN::mcp2515_setRegister(const INT8U address, const INT8U value) // Tes
     esp_err_t ret = spi_device_polling_transmit(m_spi, &t);  //Transmit!
     assert(ret == ESP_OK);            //Should have had no issues.
 
-    ESP_LOGI(CLASS_TAG, "mcp_setRegister: cmd = %d    addr = %d    tx_data[0] = %d", (uint8_t)t.cmd, (uint8_t)t.addr, t.tx_data[0]);
+    //ESP_LOGI(CLASS_TAG, "mcp_setRegister: cmd = %d    addr = %d    tx_data[0] = %d", (uint8_t)t.cmd, (uint8_t)t.addr, t.tx_data[0]);
 }
 
 /*********************************************************************************************************

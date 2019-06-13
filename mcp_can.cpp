@@ -228,7 +228,7 @@ INT8U MCP_CAN::mcp2515_setCANCTRL_Mode(const INT8U newmode)
         return MCP2515_OK;
 
     //ESP_LOGE(CLASS_TAG, "mcp2515_setCANCTRL_Mode: newmode = %d", newmode);
-    //ESP_LOGE(CLASS_TAG, "mcp2515_setCANCTRL_Mode: i = %d", i);
+    ESP_LOGE(CLASS_TAG, "ERROR setting MCP2515 Control Mode to: %d  Current Mode is: %d", newmode, i);
     return MCP2515_FAIL;
 }
 
